@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useAccount, useChainId, useSwitchChain, useReadContract } from 'wagmi';
-import { arbitrum, mainnet, bsc, base } from 'wagmi/chains';
+import { useAccount, useSwitchChain, useReadContract } from 'wagmi';
+import { useAppChainId } from '../useAppChainId';
+import { arbitrum, mainnet, bsc, base, optimism, polygon } from 'wagmi/chains';
 import { formatUnits, erc20Abi } from 'viem';
 import { ArrowDown, ChevronDown } from 'lucide-react';
 import { useTrading } from '../TradingContext';
@@ -45,7 +46,7 @@ export function RealSwapForm() {
   const { userData, wallet } = useAuth();
   const address = wagmiAddress || userData?.address;
   const isConnected = isWagmiConnected || !!wallet;
-  const chainId = useChainId();
+  const chainId = useAppChainId();
   
   const currentTokens = TOKENS_BY_CHAIN[chainId as keyof typeof TOKENS_BY_CHAIN] || TOKENS_BY_CHAIN[mainnet.id];
   const currentRouter = ROUTERS[chainId as keyof typeof ROUTERS] || ROUTERS[mainnet.id];

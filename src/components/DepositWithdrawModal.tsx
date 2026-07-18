@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { X, ArrowDown, ArrowUp, Copy, Check, Send } from 'lucide-react';
-import { useAccount, useChainId, useWriteContract, useBalance, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
+import { useAccount, useWriteContract, useBalance, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
+import { useAppChainId } from '../useAppChainId';
 import { parseEther, formatEther } from 'viem';
-import { arbitrum, mainnet, bsc, base } from 'wagmi/chains';
+import { arbitrum, mainnet, bsc, base, optimism, polygon } from 'wagmi/chains';
 import { useAuth } from '../AuthContext';
 import { ethers } from 'ethers';
 import { erc20Abi } from '../abi';
 
 const WNATIVE_ADDRESSES = {
+  [optimism.id]: { address: '0x4200000000000000000000000000000000000006', symbol: 'WETH' },
+  [polygon.id]: { address: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270', symbol: 'WMATIC' },
   [mainnet.id]: { address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', symbol: 'WETH' },
   [arbitrum.id]: { address: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', symbol: 'WETH' },
   [base.id]: { address: '0x4200000000000000000000000000000000000006', symbol: 'WETH' },
@@ -15,6 +18,8 @@ const WNATIVE_ADDRESSES = {
 };
 
 const USDC_ADDRESSES = {
+  [optimism.id]: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
+  [polygon.id]: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
   [mainnet.id]: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
   [arbitrum.id]: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
   [bsc.id]: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
@@ -53,7 +58,7 @@ export function DepositWithdrawModal({ isOpen, onClose, initialMode = 'deposit' 
   const [sendError, setSendError] = useState('');
 
   const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount();
-  const chainId = useChainId();
+  const chainId = useAppChainId();
   const { userData, wallet } = useAuth();
   
   const address = wagmiAddress || userData?.address;
@@ -72,11 +77,11 @@ export function DepositWithdrawModal({ isOpen, onClose, initialMode = 'deposit' 
   const { writeContract, data: hash, isPending, error: writeError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
   
-  const isSupportedChain = chainId === mainnet.id || chainId === arbitrum.id || chainId === bsc.id || chainId === base.id;
+  const isSupportedChain = chainId === mainnet.id || chainId === arbitrum.id || chainId === bsc.id || chainId === base.id || chainId === optimism.id || chainId === polygon.id;
   const targetContract = isSupportedChain ? WNATIVE_ADDRESSES[chainId as keyof typeof WNATIVE_ADDRESSES] : null;
   const currentUsdcAddress = isSupportedChain ? USDC_ADDRESSES[chainId as keyof typeof USDC_ADDRESSES] : null;
   
-  const nativeSymbol = chainId === bsc.id ? 'BNB' : 'ETH';
+  const nativeSymbol = chainId === bsc.id ? 'BNB' : chainId === polygon.id ? 'MATIC' : 'ETH';
 
   // Get Balances using wagmi (works for both wagmi connected and internal wallet address)
   const { data: nativeBalanceData } = useBalance({
@@ -120,9 +125,11 @@ export function DepositWithdrawModal({ isOpen, onClose, initialMode = 'deposit' 
 
     try {
       const rpcUrl = chainId === arbitrum.id ? 'https://arb1.arbitrum.io/rpc' 
-        : chainId === bsc.id ? 'https://bsc-dataseed.binance.org/' 
-        : chainId === base.id ? 'https://mainnet.base.org' 
-        : 'https://eth.llamarpc.com'; // fallback to eth mainnet
+         : chainId === bsc.id ? 'https://bsc-dataseed.binance.org/' 
+         : chainId === base.id ? 'https://mainnet.base.org' 
+         : chainId === optimism.id ? 'https://mainnet.optimism.io'
+         : chainId === polygon.id ? 'https://polygon-rpc.com'
+         : 'https://eth.llamarpc.com'; // fallback to eth mainnet
       
       const provider = new ethers.JsonRpcProvider(rpcUrl);
       const connectedWallet = wallet.connect(provider);

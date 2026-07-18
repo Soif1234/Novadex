@@ -1,5 +1,5 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { arbitrum, mainnet, bsc, base } from 'wagmi/chains';
+import { arbitrum, mainnet, bsc, base, optimism, polygon } from 'wagmi/chains';
 import {
   metaMaskWallet,
   coinbaseWallet,
@@ -11,7 +11,7 @@ const projectId = (import.meta as any).env?.VITE_WALLETCONNECT_PROJECT_ID || 'c0
 export const config = getDefaultConfig({
   appName: 'NovaDEX',
   projectId,
-  chains: [arbitrum, mainnet, bsc, base],
+  chains: [arbitrum, base, optimism, polygon, mainnet, bsc],
   wallets: [
     {
       groupName: 'Recommended',

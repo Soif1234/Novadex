@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { PieChart, TrendingUp, ShieldAlert, Wallet, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
-import { useAccount, useReadContract, useChainId } from 'wagmi';
+import { useAccount, useReadContract } from 'wagmi';
+import { useAppChainId } from '../useAppChainId';
 import { useAuth } from '../AuthContext';
 import { useTrading } from '../TradingContext';
 import { usePrice } from '../PriceContext';
 import { useMarket } from '../MarketContext';
 import { erc20Abi } from '../abi';
 import { formatUnits } from 'viem';
-import { arbitrum, mainnet, bsc, base } from 'wagmi/chains';
+import { arbitrum, mainnet, bsc, base, optimism, polygon } from 'wagmi/chains';
 import { DepositWithdrawModal } from './DepositWithdrawModal';
 
 // USDC Token addresses
 const USDC_ADDRESSES = {
+  [optimism.id]: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
+  [polygon.id]: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
   [mainnet.id]: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48' as const,
   [arbitrum.id]: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' as const,
   [bsc.id]: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d' as const,
@@ -23,7 +26,7 @@ export function PortfolioSummary() {
   const { userData, wallet } = useAuth();
   const address = wagmiAddress || userData?.address;
   const isConnected = isWagmiConnected || !!userData?.address;
-  const chainId = useChainId();
+  const chainId = useAppChainId();
   const { positions, balance } = useTrading();
   const { currentPrice } = usePrice();
   const { currentSymbol } = useMarket();
@@ -32,7 +35,7 @@ export function PortfolioSummary() {
   const [modalMode, setModalMode] = useState<'deposit'|'withdraw'>('deposit');
 
   
-  const isSupportedChain = chainId === mainnet.id || chainId === arbitrum.id || chainId === bsc.id || chainId === base.id;
+  const isSupportedChain = chainId === mainnet.id || chainId === arbitrum.id || chainId === bsc.id || chainId === base.id || chainId === optimism.id || chainId === polygon.id;
   const currentUsdcAddress = isSupportedChain ? USDC_ADDRESSES[chainId as keyof typeof USDC_ADDRESSES] : undefined;
 
   // Read real USDC balance from connected wallet
@@ -66,11 +69,11 @@ export function PortfolioSummary() {
   const totalMargin = positions.reduce((acc, pos) => acc + pos.margin, 0);
   
   // Buying power is real USDC balance minus margin used
-  const buyingPower = Math.max(0, (realUsdcBalance > 0 ? realUsdcBalance : balance) - totalMargin);
-  const totalBalance = (realUsdcBalance > 0 ? realUsdcBalance : balance) + unrealizedPnL;
+  const buyingPower = Math.max(0, realUsdcBalance + balance);
+  const totalBalance = realUsdcBalance + (balance + totalMargin) + unrealizedPnL;
   
   const pnlPercent = totalBalance > 0 ? (unrealizedPnL / totalBalance) * 100 : 0;
-  const actualUsdc = realUsdcBalance > 0 ? realUsdcBalance : balance;
+  const actualUsdc = realUsdcBalance + (balance + totalMargin);
   const collateralUsage = actualUsdc > 0 ? (totalMargin / actualUsdc) * 100 : 0;
 
   if (!isConnected) {

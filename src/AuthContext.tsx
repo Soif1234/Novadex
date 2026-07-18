@@ -26,6 +26,8 @@ interface AuthContextType {
   signup: (email: string, password: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  emailChainId: number;
+  setEmailChainId: (id: number) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,6 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserProfile | null>(null);
   const [wallet, setWallet] = useState<ethers.Wallet | null>(null);
+  const [emailChainId, setEmailChainId] = useState<number>(1);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -100,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, userData, wallet, loading, signup, login, logout }}>
+    <AuthContext.Provider value={{ user, userData, wallet, loading, signup, login, logout, emailChainId, setEmailChainId }}>
       {!loading && children}
     </AuthContext.Provider>
   );

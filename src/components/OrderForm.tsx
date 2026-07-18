@@ -4,13 +4,16 @@ import { usePrice } from '../PriceContext';
 import { useTrading } from '../TradingContext';
 import { useMarket } from '../MarketContext';
 import { RealSwapForm } from './RealSwapForm';
-import { useAccount, useReadContract, useChainId } from 'wagmi';
+import { useAccount, useReadContract } from 'wagmi';
+import { useAppChainId } from '../useAppChainId';
 import { useAuth } from '../AuthContext';
 import { erc20Abi } from '../abi';
 import { formatUnits } from 'viem';
-import { arbitrum, mainnet, bsc, base } from 'wagmi/chains';
+import { arbitrum, mainnet, bsc, base, optimism, polygon } from 'wagmi/chains';
 
 const USDT_ADDRESSES = {
+  [optimism.id]: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
+  [polygon.id]: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
   [mainnet.id]: '0xdAC17F958D2ee523a2206206994597C13D831ec7' as const,
   [arbitrum.id]: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9' as const,
   [bsc.id]: '0x55d398326f99059fF775485246999027B3197955' as const,
@@ -26,9 +29,9 @@ export function OrderForm({ forceMode }: { forceMode?: 'perp' | 'swap' }) {
   const { userData, wallet } = useAuth();
   const address = wagmiAddress || userData?.address;
   const isConnected = isWagmiConnected || !!userData?.address;
-  const chainId = useChainId();
+  const chainId = useAppChainId();
   
-  const isSupportedChain = chainId === mainnet.id || chainId === arbitrum.id || chainId === bsc.id || chainId === base.id;
+  const isSupportedChain = chainId === mainnet.id || chainId === arbitrum.id || chainId === bsc.id || chainId === base.id || chainId === optimism.id || chainId === polygon.id;
   const currentUsdtAddress = isSupportedChain ? USDT_ADDRESSES[chainId as keyof typeof USDT_ADDRESSES] : undefined;
 
   const { data: usdtBalanceData } = useReadContract({
@@ -52,7 +55,7 @@ export function OrderForm({ forceMode }: { forceMode?: 'perp' | 'swap' }) {
   const totalMargin = positions.reduce((acc, pos) => acc + pos.margin, 0);
   const buyingPower = mode === 'swap' 
     ? realUsdtBalance 
-    : Math.max(0, balance - totalMargin);
+    : Math.max(0, realUsdtBalance + balance);
   
   useEffect(() => {
     if (forceMode) {
@@ -123,7 +126,7 @@ export function OrderForm({ forceMode }: { forceMode?: 'perp' | 'swap' }) {
     }
   }
 
-  const fees = (sizeAmount && execPrice > 0) ? parseFloat(sizeAmount) * execPrice * 0.001 : 0; 
+  const fees = (sizeAmount && execPrice > 0) ? parseFloat(sizeAmount) * execPrice * 0.0001 : 0; 
 
   const handleSubmit = () => {
     const pay = parseFloat(payAmount);
@@ -131,9 +134,9 @@ export function OrderForm({ forceMode }: { forceMode?: 'perp' | 'swap' }) {
     
     if (isNaN(pay) || isNaN(size) || pay <= 0) return;
 
-    // Wallet connection requirement is only for real swaps. Futures are paper traded.
-    if (mode === 'swap' && !isConnected) {
-      alert("Please connect your wallet");
+    // Wallet connection requirement is only for real swaps. 
+    if (!isConnected) {
+      alert("Please log in or connect your wallet");
       return;
     }
 
@@ -402,9 +405,9 @@ export function OrderForm({ forceMode }: { forceMode?: 'perp' | 'swap' }) {
                 <span className="text-gray-400">Price Impact</span>
                 <span className="text-emerald-400 font-mono">&lt; 0.01%</span>
               </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-gray-400">Fees</span>
-                <span className="text-white font-mono">{fees > 0 ? `$${fees.toFixed(2)}` : '-'}</span>
+              <div className="flex justify-between text-xs items-center">
+                <span className="text-gray-400 flex items-center gap-1">Fees <span className="bg-blue-500/20 text-blue-400 text-[9px] px-1.5 py-0.5 rounded-full border border-blue-500/20">L2 Optimized</span></span>
+                <span className="text-white font-mono">{fees > 0 ? `${fees.toFixed(4)}` : '-'}</span>
               </div>
             </div>
           </div>

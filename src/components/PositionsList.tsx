@@ -255,7 +255,7 @@ export function PositionsList() {
                   </td>
                   <td className="py-4 px-4 font-mono text-gray-200 text-right">${tx.price.toFixed(2)}</td>
                   <td className="py-4 px-4 font-mono text-gray-200 text-right">{tx.size}</td>
-                  <td className="py-4 px-4 font-mono text-gray-400 text-right">${tx.fee.toFixed(2)}</td>
+                  <td className="py-4 px-4 font-mono text-gray-400 text-right">${tx.fee.toFixed(4)}</td>
                 </tr>
               ))}
             </tbody>

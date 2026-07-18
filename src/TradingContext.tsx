@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { ethers } from 'ethers';
-import { useChainId } from 'wagmi';
-import { arbitrum, mainnet, bsc, base } from 'wagmi/chains';
+import { useAppChainId } from './useAppChainId';
+import { arbitrum, mainnet, bsc, base, optimism, polygon } from 'wagmi/chains';
 import { useAuth } from './AuthContext';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from './firebase';
@@ -69,8 +69,8 @@ const TradingContext = createContext<TradingContextType | undefined>(undefined);
 
 export function TradingProvider({ children }: { children: ReactNode }) {
   const { user, wallet } = useAuth();
-  const chainId = useChainId();
-  const [balance, setBalance] = useState<number>(100000);
+  const chainId = useAppChainId();
+  const [balance, setBalance] = useState<number>(0);
   const [positions, setPositions] = useState<Position[]>([]);
   const [limitOrders, setLimitOrders] = useState<LimitOrder[]>([]);
   const [history, setHistory] = useState<Transaction[]>(() => {
@@ -152,9 +152,11 @@ export function TradingProvider({ children }: { children: ReactNode }) {
     if (wallet) {
       // Use the generated wallet connected to a default provider (e.g. Ethereum mainnet or Arbitrum)
             const rpcUrl = chainId === arbitrum.id ? 'https://arb1.arbitrum.io/rpc' 
-        : chainId === bsc.id ? 'https://bsc-dataseed.binance.org/' 
-        : chainId === base.id ? 'https://mainnet.base.org' 
-        : 'https://eth.llamarpc.com'; // fallback to eth mainnet
+         : chainId === bsc.id ? 'https://bsc-dataseed.binance.org/' 
+         : chainId === base.id ? 'https://mainnet.base.org' 
+         : chainId === optimism.id ? 'https://mainnet.optimism.io'
+         : chainId === polygon.id ? 'https://polygon-rpc.com'
+         : 'https://eth.llamarpc.com'; // fallback to eth mainnet
       const provider = new ethers.JsonRpcProvider(rpcUrl);
       signer = wallet.connect(provider);
     } else if (window.ethereum) {
@@ -201,9 +203,11 @@ export function TradingProvider({ children }: { children: ReactNode }) {
     let signer;
     if (wallet) {
             const rpcUrl = chainId === arbitrum.id ? 'https://arb1.arbitrum.io/rpc' 
-        : chainId === bsc.id ? 'https://bsc-dataseed.binance.org/' 
-        : chainId === base.id ? 'https://mainnet.base.org' 
-        : 'https://eth.llamarpc.com'; // fallback to eth mainnet
+         : chainId === bsc.id ? 'https://bsc-dataseed.binance.org/' 
+         : chainId === base.id ? 'https://mainnet.base.org' 
+         : chainId === optimism.id ? 'https://mainnet.optimism.io'
+         : chainId === polygon.id ? 'https://polygon-rpc.com'
+         : 'https://eth.llamarpc.com'; // fallback to eth mainnet
       const provider = new ethers.JsonRpcProvider(rpcUrl);
       signer = wallet.connect(provider);
     } else if (window.ethereum) {
@@ -236,9 +240,11 @@ export function TradingProvider({ children }: { children: ReactNode }) {
     let signer;
     if (wallet) {
             const rpcUrl = chainId === arbitrum.id ? 'https://arb1.arbitrum.io/rpc' 
-        : chainId === bsc.id ? 'https://bsc-dataseed.binance.org/' 
-        : chainId === base.id ? 'https://mainnet.base.org' 
-        : 'https://eth.llamarpc.com'; // fallback to eth mainnet
+         : chainId === bsc.id ? 'https://bsc-dataseed.binance.org/' 
+         : chainId === base.id ? 'https://mainnet.base.org' 
+         : chainId === optimism.id ? 'https://mainnet.optimism.io'
+         : chainId === polygon.id ? 'https://polygon-rpc.com'
+         : 'https://eth.llamarpc.com'; // fallback to eth mainnet
       const provider = new ethers.JsonRpcProvider(rpcUrl);
       signer = wallet.connect(provider);
     } else if (window.ethereum) {
@@ -262,9 +268,11 @@ export function TradingProvider({ children }: { children: ReactNode }) {
     let signer;
     if (wallet) {
             const rpcUrl = chainId === arbitrum.id ? 'https://arb1.arbitrum.io/rpc' 
-        : chainId === bsc.id ? 'https://bsc-dataseed.binance.org/' 
-        : chainId === base.id ? 'https://mainnet.base.org' 
-        : 'https://eth.llamarpc.com'; // fallback to eth mainnet
+         : chainId === bsc.id ? 'https://bsc-dataseed.binance.org/' 
+         : chainId === base.id ? 'https://mainnet.base.org' 
+         : chainId === optimism.id ? 'https://mainnet.optimism.io'
+         : chainId === polygon.id ? 'https://polygon-rpc.com'
+         : 'https://eth.llamarpc.com'; // fallback to eth mainnet
       const provider = new ethers.JsonRpcProvider(rpcUrl);
       signer = wallet.connect(provider);
     } else if (window.ethereum) {
