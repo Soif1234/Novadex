@@ -55,7 +55,7 @@ export function OrderForm({ forceMode }: { forceMode?: 'perp' | 'swap' }) {
   const totalMargin = positions.reduce((acc, pos) => acc + pos.margin, 0);
   const buyingPower = mode === 'swap' 
     ? realUsdtBalance 
-    : Math.max(0, realUsdtBalance + balance);
+    : Math.max(0, realUsdtBalance - totalMargin);
   
   useEffect(() => {
     if (forceMode) {

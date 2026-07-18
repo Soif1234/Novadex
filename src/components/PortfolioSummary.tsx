@@ -36,11 +36,11 @@ export function PortfolioSummary() {
 
   
   const isSupportedChain = chainId === mainnet.id || chainId === arbitrum.id || chainId === bsc.id || chainId === base.id || chainId === optimism.id || chainId === polygon.id;
-  const currentUsdcAddress = isSupportedChain ? USDC_ADDRESSES[chainId as keyof typeof USDC_ADDRESSES] : undefined;
+  const currentUsdtAddress = isSupportedChain ? USDT_ADDRESSES[chainId as keyof typeof USDT_ADDRESSES] : undefined;
 
-  // Read real USDC balance from connected wallet
-  const { data: usdcBalanceData } = useReadContract({
-    address: currentUsdcAddress,
+  // Read real USDT balance from connected wallet
+  const { data: usdtBalanceData } = useReadContract({
+    address: currentUsdtAddress,
     abi: erc20Abi,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
@@ -48,13 +48,13 @@ export function PortfolioSummary() {
   });
 
   const { data: decimals = 6 } = useReadContract({
-    address: currentUsdcAddress,
+    address: currentUsdtAddress,
     abi: erc20Abi,
     functionName: 'decimals',
     query: { enabled: !!address && isSupportedChain, refetchInterval: 15000 }
   });
 
-  const realUsdcBalance = usdcBalanceData ? parseFloat(formatUnits(usdcBalanceData as bigint, decimals as number)) : 0;
+  const realUsdtBalance = usdtBalanceData ? parseFloat(formatUnits(usdtBalanceData as bigint, decimals as number)) : 0;
 
   // Compute live stats based on actual positions
   const unrealizedPnL = positions.reduce((acc, pos) => {
@@ -68,13 +68,13 @@ export function PortfolioSummary() {
   
   const totalMargin = positions.reduce((acc, pos) => acc + pos.margin, 0);
   
-  // Buying power is real USDC balance minus margin used
-  const buyingPower = Math.max(0, realUsdcBalance + balance);
-  const totalBalance = realUsdcBalance + (balance + totalMargin) + unrealizedPnL;
+  // Buying power is real USDT balance minus margin used
+  const buyingPower = Math.max(0, realUsdtBalance - totalMargin);
+  const totalBalance = realUsdtBalance + unrealizedPnL;
   
   const pnlPercent = totalBalance > 0 ? (unrealizedPnL / totalBalance) * 100 : 0;
-  const actualUsdc = realUsdcBalance + (balance + totalMargin);
-  const collateralUsage = actualUsdc > 0 ? (totalMargin / actualUsdc) * 100 : 0;
+  const actualUsdt = realUsdtBalance;
+  const collateralUsage = actualUsdt > 0 ? (totalMargin / actualUsdt) * 100 : 0;
 
   if (!isConnected) {
     return (
@@ -147,7 +147,7 @@ export function PortfolioSummary() {
           </button>
         </div>
         <div className="flex flex-col items-end hidden sm:flex">
-          <span className="text-xs text-gray-500 flex items-center gap-1">Wallet Buying Power (USDC) <Wallet className="w-3 h-3 text-blue-400 ml-1" /></span>
+          <span className="text-xs text-gray-500 flex items-center gap-1">Wallet Buying Power (USDT) <Wallet className="w-3 h-3 text-blue-400 ml-1" /></span>
           <span className="text-base font-mono font-bold text-gray-200">${buyingPower.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         </div>
       </div>

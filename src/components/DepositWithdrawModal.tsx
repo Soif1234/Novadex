@@ -26,6 +26,15 @@ const USDC_ADDRESSES = {
   [base.id]: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
 };
 
+const USDT_ADDRESSES = {
+  [optimism.id]: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
+  [polygon.id]: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+  [mainnet.id]: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+  [arbitrum.id]: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+  [bsc.id]: '0x55d398326f99059fF775485246999027B3197955',
+  [base.id]: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+};
+
 const WNATIVE_ABI = [
   {
     "constant": false,
@@ -51,7 +60,7 @@ export function DepositWithdrawModal({ isOpen, onClose, initialMode = 'deposit' 
   const [mode, setMode] = useState<'deposit' | 'withdraw'>(initialMode);
   const [amount, setAmount] = useState('');
   const [destinationAddress, setDestinationAddress] = useState('');
-  const [selectedToken, setSelectedToken] = useState<'Native' | 'USDC'>('Native');
+  const [selectedToken, setSelectedToken] = useState<'Native' | 'USDC' | 'USDT'>('Native');
   const [copied, setCopied] = useState(false);
   const [txHash, setTxHash] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -59,7 +68,8 @@ export function DepositWithdrawModal({ isOpen, onClose, initialMode = 'deposit' 
 
   const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount();
   const chainId = useAppChainId();
-  const { userData, wallet } = useAuth();
+  const { userData, wallet, setEmailChainId } = useAuth();
+  const chainsList = [mainnet, arbitrum, bsc, base, optimism, polygon];
   
   const address = wagmiAddress || userData?.address;
   const isEmailWallet = !isWagmiConnected && !!wallet;
@@ -80,6 +90,7 @@ export function DepositWithdrawModal({ isOpen, onClose, initialMode = 'deposit' 
   const isSupportedChain = chainId === mainnet.id || chainId === arbitrum.id || chainId === bsc.id || chainId === base.id || chainId === optimism.id || chainId === polygon.id;
   const targetContract = isSupportedChain ? WNATIVE_ADDRESSES[chainId as keyof typeof WNATIVE_ADDRESSES] : null;
   const currentUsdcAddress = isSupportedChain ? USDC_ADDRESSES[chainId as keyof typeof USDC_ADDRESSES] : null;
+  const currentUsdtAddress = isSupportedChain ? USDT_ADDRESSES[chainId as keyof typeof USDT_ADDRESSES] : null;
   
   const nativeSymbol = chainId === bsc.id ? 'BNB' : chainId === polygon.id ? 'MATIC' : 'ETH';
 
@@ -103,6 +114,13 @@ export function DepositWithdrawModal({ isOpen, onClose, initialMode = 'deposit' 
     functionName: 'balanceOf',
     args: address ? [address as any] : undefined,
     query: { enabled: !!address && !!currentUsdcAddress, refetchInterval: 15000 }
+  });
+  const { data: usdtBalanceDataRaw } = useReadContract({
+    address: currentUsdtAddress as any,
+    abi: erc20Abi,
+    functionName: 'balanceOf',
+    args: address ? [address as any] : undefined,
+    query: { enabled: !!address && !!currentUsdtAddress, refetchInterval: 15000 }
   });
 
   if (!isOpen) return null;
@@ -145,6 +163,12 @@ export function DepositWithdrawModal({ isOpen, onClose, initialMode = 'deposit' 
         const usdcContract = new ethers.Contract(currentUsdcAddress, erc20Abi, connectedWallet);
         const parsedAmount = ethers.parseUnits(amount, decimals);
         const tx = await usdcContract.transfer(destinationAddress, parsedAmount);
+        setTxHash(tx.hash);
+      } else if (selectedToken === 'USDT' && currentUsdtAddress) {
+        const decimals = chainId === bsc.id ? 18 : 6;
+        const usdtContract = new ethers.Contract(currentUsdtAddress, erc20Abi, connectedWallet);
+        const parsedAmount = ethers.parseUnits(amount, decimals);
+        const tx = await usdtContract.transfer(destinationAddress, parsedAmount);
         setTxHash(tx.hash);
       }
     } catch (err: any) {
@@ -252,6 +276,18 @@ export function DepositWithdrawModal({ isOpen, onClose, initialMode = 'deposit' 
               <form onSubmit={handleInternalWithdraw} className="space-y-4">
                 <div className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-3">
                   <div className="space-y-1">
+                    <label className="text-xs text-gray-400">Withdrawal Network</label>
+                    <select
+                      value={chainId}
+                      onChange={(e) => setEmailChainId(Number(e.target.value))}
+                      className="bg-[#0B0E14] border border-white/10 rounded-lg w-full p-2.5 text-sm font-medium text-white focus:outline-none focus:border-blue-500/50"
+                    >
+                      {chainsList.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
                     <label className="text-xs text-gray-400">Destination Address</label>
                     <input 
                       type="text" 
@@ -281,6 +317,7 @@ export function DepositWithdrawModal({ isOpen, onClose, initialMode = 'deposit' 
                       >
                         <option value="Native">{nativeSymbol}</option>
                         <option value="USDC">USDC</option>
+                        <option value="USDT">USDT</option>
                       </select>
                     </div>
                   </div>

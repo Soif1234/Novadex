@@ -206,7 +206,7 @@ export function Header() {
           </button>
         )}
 
-        <ConnectButton />
+        <div className={user ? "hidden" : "block"}><ConnectButton chainStatus="full" showBalance={false} /></div>
       </div>
 
       {isAuthModalOpen && <AuthModal onClose={() => setIsAuthModalOpen(false)} />}
