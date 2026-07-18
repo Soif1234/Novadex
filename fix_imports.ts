@@ -1,0 +1,12 @@
+import fs from 'fs';
+let content = fs.readFileSync('src/App.tsx', 'utf8');
+const imports = `import { TradingProvider } from './TradingContext';
+import { AuthProvider } from './AuthContext';
+import { ThemeProvider, useTheme } from './ThemeContext';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { LandingPage } from './pages/LandingPage';
+import { DocsPage } from './pages/DocsPage';
+import { ReferralPage } from './pages/ReferralPage';`;
+content = content.replace(imports, '');
+content = imports + '\n' + content;
+fs.writeFileSync('src/App.tsx', content);

@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@layer components {
+  .touch-slider {
+    @apply w-full h-6 appearance-none bg-transparent cursor-pointer touch-none;
+  }
+  
+  .touch-slider::-webkit-slider-runnable-track {
+    @apply w-full h-2 bg-white/10 rounded-full;
+  }
+  
+  .touch-slider::-webkit-slider-thumb {
+    @apply appearance-none w-6 h-6 rounded-full bg-blue-500 border-2 border-white shadow-lg -mt-2 transition-transform active:scale-125;
+  }
+  
+  .touch-slider::-moz-range-track {
+    @apply w-full h-2 bg-white/10 rounded-full;
+  }
+  
+  .touch-slider::-moz-range-thumb {
+    @apply appearance-none w-6 h-6 rounded-full bg-blue-500 border-2 border-white shadow-lg transition-transform active:scale-125;
+  }
+}
