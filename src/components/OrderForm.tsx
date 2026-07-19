@@ -12,8 +12,8 @@ import { formatUnits } from 'viem';
 import { arbitrum, mainnet, bsc, base, optimism, polygon } from 'wagmi/chains';
 
 const USDT_ADDRESSES = {
-  [optimism.id]: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
-  [polygon.id]: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+  [optimism.id]: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58' as const,
+  [polygon.id]: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F' as const,
   [mainnet.id]: '0xdAC17F958D2ee523a2206206994597C13D831ec7' as const,
   [arbitrum.id]: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9' as const,
   [bsc.id]: '0x55d398326f99059fF775485246999027B3197955' as const,
@@ -35,7 +35,7 @@ export function OrderForm({ forceMode }: { forceMode?: 'perp' | 'swap' }) {
   const currentUsdtAddress = isSupportedChain ? USDT_ADDRESSES[chainId as keyof typeof USDT_ADDRESSES] : undefined;
 
   const { data: usdtBalanceData } = useReadContract({
-    address: currentUsdtAddress,
+    address: currentUsdtAddress as `0x${string}` | undefined,
     abi: erc20Abi,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
@@ -43,7 +43,7 @@ export function OrderForm({ forceMode }: { forceMode?: 'perp' | 'swap' }) {
   });
 
   const { data: decimals = 6 } = useReadContract({
-    address: currentUsdtAddress,
+    address: currentUsdtAddress as `0x${string}` | undefined,
     abi: erc20Abi,
     functionName: 'decimals',
     query: { enabled: !!address && isSupportedChain, refetchInterval: 15000 }

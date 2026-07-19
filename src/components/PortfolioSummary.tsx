@@ -12,9 +12,9 @@ import { arbitrum, mainnet, bsc, base, optimism, polygon } from 'wagmi/chains';
 import { DepositWithdrawModal } from './DepositWithdrawModal';
 
 // USDC Token addresses
-const USDC_ADDRESSES = {
-  [optimism.id]: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
-  [polygon.id]: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+const USDT_ADDRESSES = {
+  [optimism.id]: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85' as const,
+  [polygon.id]: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359' as const,
   [mainnet.id]: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48' as const,
   [arbitrum.id]: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' as const,
   [bsc.id]: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d' as const,
@@ -40,7 +40,7 @@ export function PortfolioSummary() {
 
   // Read real USDT balance from connected wallet
   const { data: usdtBalanceData } = useReadContract({
-    address: currentUsdtAddress,
+    address: currentUsdtAddress as `0x${string}` | undefined,
     abi: erc20Abi,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
@@ -48,7 +48,7 @@ export function PortfolioSummary() {
   });
 
   const { data: decimals = 6 } = useReadContract({
-    address: currentUsdtAddress,
+    address: currentUsdtAddress as `0x${string}` | undefined,
     abi: erc20Abi,
     functionName: 'decimals',
     query: { enabled: !!address && isSupportedChain, refetchInterval: 15000 }
